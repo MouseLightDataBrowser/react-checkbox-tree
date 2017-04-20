@@ -41,7 +41,7 @@ class CheckboxTree extends React.Component {
 	}
 
 	onCheck(node) {
-		const { checked, onCheck } = this.props;
+		const {checked, onCheck} = this.props;
 
 		onCheck(this.toggleChecked([...checked], node, node.checked));
 	}
@@ -77,28 +77,28 @@ class CheckboxTree extends React.Component {
 		// }
 
 		/*
-		if (this.isEveryChildChecked(node)) {
-			return 1;
-		}
+		 if (this.isEveryChildChecked(node)) {
+		 return 1;
+		 }
 
-		if (this.isSomeChildChecked(node)) {
-			return 2;
-		}
+		 if (this.isSomeChildChecked(node)) {
+		 return 2;
+		 }
 
-		return 0;
-		*/
+		 return 0;
+		 */
 	}
 
 	toggleChecked(checked, node, isChecked) {
-		if (node.children !== null) {
-			// Percolate check status down to all children
-			// node.children.forEach((child) => {
-			//	this.toggleChecked(checked, child, isChecked);
-			// });
-		} else {
-			// Set leaf to check/unchecked state
-			this.toggleNode(checked, node, isChecked);
-		}
+		// if (node.children !== null) {
+		// Percolate check status down to all children
+		// node.children.forEach((child) => {
+		//	this.toggleChecked(checked, child, isChecked);
+		// });
+		// } else {
+		// Set leaf to check/unchecked state
+		this.toggleNode(checked, node, isChecked);
+		// }
 
 		return checked;
 	}
