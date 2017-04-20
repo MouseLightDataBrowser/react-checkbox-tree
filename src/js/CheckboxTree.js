@@ -25,8 +25,10 @@ class CheckboxTree extends React.Component {
 		nameAsArray: false,
 		nodes: [],
 		optimisticToggle: true,
-		onCheck: () => {},
-		onExpand: () => {},
+		onCheck: () => {
+		},
+		onExpand: () => {
+		},
 	};
 
 	constructor(props) {
@@ -45,16 +47,16 @@ class CheckboxTree extends React.Component {
 	}
 
 	onExpand(node) {
-		const { expanded, onExpand } = this.props;
+		const {expanded, onExpand} = this.props;
 
 		onExpand(this.toggleNode([...expanded], node, node.expanded));
 	}
 
 	getFormattedNodes(nodes) {
-		const { checked, expanded } = this.props;
+		const {checked, expanded} = this.props;
 
 		return nodes.map((node) => {
-			const formatted = { ...node };
+			const formatted = {...node};
 
 			formatted.checked = checked.indexOf(node.value) > -1;
 			formatted.expanded = expanded.indexOf(node.value) > -1;
@@ -70,10 +72,11 @@ class CheckboxTree extends React.Component {
 	}
 
 	getCheckState(node) {
-		if (node.children === null) {
-			return node.checked ? 1 : 0;
-		}
+		// if (node.children === null) {
+		return node.checked ? 1 : 0;
+		// }
 
+		/*
 		if (this.isEveryChildChecked(node)) {
 			return 1;
 		}
@@ -83,14 +86,15 @@ class CheckboxTree extends React.Component {
 		}
 
 		return 0;
+		*/
 	}
 
 	toggleChecked(checked, node, isChecked) {
 		if (node.children !== null) {
 			// Percolate check status down to all children
-			node.children.forEach((child) => {
-				this.toggleChecked(checked, child, isChecked);
-			});
+			// node.children.forEach((child) => {
+			//	this.toggleChecked(checked, child, isChecked);
+			// });
 		} else {
 			// Set leaf to check/unchecked state
 			this.toggleNode(checked, node, isChecked);
@@ -187,14 +191,14 @@ class CheckboxTree extends React.Component {
 		return this.props.checked.map((value) => {
 			const name = `${this.props.name}[]`;
 
-			return <input key={value} name={name} type="hidden" value={value} />;
+			return <input key={value} name={name} type="hidden" value={value}/>;
 		});
 	}
 
 	renderJoinedHiddenInput() {
 		const checked = this.props.checked.join(',');
 
-		return <input name={this.props.name} type="hidden" value={checked} />;
+		return <input name={this.props.name} type="hidden" value={checked}/>;
 	}
 
 	render() {
