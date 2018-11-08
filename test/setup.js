@@ -1,13 +1,23 @@
-import { jsdom } from 'jsdom';
+import Enzyme from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+import { JSDOM } from 'jsdom';
 
-global.document = jsdom('');
-global.window = document.defaultView;
-Object.keys(document.defaultView).forEach((property) => {
-	if (typeof global[property] === 'undefined') {
-		global[property] = document.defaultView[property];
-	}
-});
+Enzyme.configure({ adapter: new Adapter() });
 
+const jsdom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
+const { window } = jsdom;
+
+function copyProps(src, target) {
+    const props = Object.getOwnPropertyNames(src)
+        .filter(prop => typeof target[prop] === 'undefined')
+        .map(prop => Object.getOwnPropertyDescriptor(src, prop));
+    Object.defineProperties(target, props);
+}
+
+global.window = window;
+global.document = window.document;
+global.HTMLElement = window.HTMLElement;
 global.navigator = {
-	userAgent: 'node.js',
+    userAgent: 'node.js',
 };
+copyProps(window, global);

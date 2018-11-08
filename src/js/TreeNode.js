@@ -2,158 +2,304 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import nodeShape from './nodeShape';
+import Button from './Button';
+import NativeCheckbox from './NativeCheckbox';
+import iconsShape from './shapes/iconsShape';
+import languageShape from './shapes/languageShape';
 
 class TreeNode extends React.Component {
-	static propTypes = {
-		checked: PropTypes.number.isRequired,
-		expanded: PropTypes.bool.isRequired,
-		label: PropTypes.string.isRequired,
-		optimisticToggle: PropTypes.bool.isRequired,
-		treeId: PropTypes.string.isRequired,
-		value: PropTypes.string.isRequired,
-		onCheck: PropTypes.func.isRequired,
-		onExpand: PropTypes.func.isRequired,
+    static propTypes = {
+        checked: PropTypes.number.isRequired,
+        disabled: PropTypes.bool.isRequired,
+        expandDisabled: PropTypes.bool.isRequired,
+        expanded: PropTypes.bool.isRequired,
+        icons: iconsShape.isRequired,
+        isLeaf: PropTypes.bool.isRequired,
+        isParent: PropTypes.bool.isRequired,
+        label: PropTypes.node.isRequired,
+        lang: languageShape.isRequired,
+        optimisticToggle: PropTypes.bool.isRequired,
+        showNodeIcon: PropTypes.bool.isRequired,
+        treeId: PropTypes.string.isRequired,
+        value: PropTypes.oneOfType([
+            PropTypes.string,
+            PropTypes.number,
+        ]).isRequired,
+        onCheck: PropTypes.func.isRequired,
+        onExpand: PropTypes.func.isRequired,
 
-		children: PropTypes.node,
-		icon: PropTypes.node,
-		rawChildren: PropTypes.arrayOf(nodeShape),
-	};
+        children: PropTypes.node,
+        className: PropTypes.string,
+        expandOnClick: PropTypes.bool,
+        icon: PropTypes.node,
+        showCheckbox: PropTypes.bool,
+        title: PropTypes.string,
+        onClick: PropTypes.func,
+    };
 
-	static defaultProps = {
-		children: null,
-		icon: null,
-		rawChildren: null,
-	};
+    static defaultProps = {
+        children: null,
+        className: null,
+        expandOnClick: false,
+        icon: null,
+        showCheckbox: true,
+        title: null,
+        onClick: () => {},
+    };
 
-	constructor(props) {
-		super(props);
+    constructor(props) {
+        super(props);
 
-		this.onCheck = this.onCheck.bind(this);
-		this.onExpand = this.onExpand.bind(this);
-	}
+        this.onCheck = this.onCheck.bind(this);
+        this.onClick = this.onClick.bind(this);
+        this.onExpand = this.onExpand.bind(this);
+    }
 
-	onCheck() {
-		let isChecked = false;
+    onCheck() {
+        let isChecked = false;
 
-		// Toggle off state to checked
-		if (this.props.checked === 0) {
-			isChecked = true;
-		}
+        // Toggle off state to checked
+        if (this.props.checked === 0) {
+            isChecked = true;
+        }
 
-		// Toggle partial state based on model
-		if (this.props.checked === 2) {
-			isChecked = this.props.optimisticToggle;
-		}
+        // Toggle partial state based on cascade model
+        if (this.props.checked === 2) {
+            isChecked = this.props.optimisticToggle;
+        }
 
-		this.props.onCheck({
-			value: this.props.value,
-			checked: isChecked,
-			children: this.props.rawChildren,
-		});
-	}
+        this.props.onCheck({
+            value: this.props.value,
+            checked: isChecked,
+        });
+    }
 
-	onExpand() {
-		this.props.onExpand({
-			value: this.props.value,
-			expanded: !this.props.expanded,
-		});
-	}
+    onClick() {
+        const {
+            checked,
+            expandOnClick,
+            isParent,
+            optimisticToggle,
+            value,
+            onClick,
+        } = this.props;
+        let isChecked = false;
 
-	hasChildren() {
-		return this.props.rawChildren !== null;
-	}
+        if (checked === 1) {
+            isChecked = true;
+        }
 
-	renderCollapseIcon() {
-		if (!this.props.expanded) {
-			return <i className="rct-icon rct-icon-expand-close" />;
-		}
+        // Get partial state based on cascade model
+        if (checked === 2) {
+            isChecked = optimisticToggle;
+        }
 
-		return <i className="rct-icon rct-icon-expand-open" />;
-	}
+        // Auto expand if enabled
+        if (isParent && expandOnClick) {
+            this.onExpand();
+        }
 
-	renderCollapseButton() {
-		if (!this.hasChildren()) {
-			return (
-				<span className="rct-collapse">
-					<i className="rct-icon" />
-				</span>
-			);
-		}
+        onClick({ value, checked: isChecked });
+    }
 
-		return (
-			<button aria-label="Toggle" className="rct-collapse rct-collapse-btn" title="Toggle" onClick={this.onExpand}>
-				{this.renderCollapseIcon()}
-			</button>
-		);
-	}
+    onExpand() {
+        const { expanded, value, onExpand } = this.props;
 
-	renderCheckboxIcon() {
-		if (this.props.checked === 0) {
-			return <i className="rct-icon rct-icon-uncheck" />;
-		}
+        onExpand({ value, expanded: !expanded });
+    }
 
-		if (this.props.checked === 1) {
-			return <i className="rct-icon rct-icon-check" />;
-		}
+    renderCollapseButton() {
+        const { expandDisabled, isLeaf, lang } = this.props;
 
-		return <i className="rct-icon rct-icon-half-check" />;
-	}
+        if (isLeaf) {
+            return (
+                <span className="rct-collapse">
+                    <span className="rct-icon" />
+                </span>
+            );
+        }
 
-	renderNodeIcon() {
-		if (this.props.icon !== null) {
-			return this.props.icon;
-		}
+        return (
+            <Button
+                className="rct-collapse rct-collapse-btn"
+                disabled={expandDisabled}
+                title={lang.toggle}
+                onClick={this.onExpand}
+            >
+                {this.renderCollapseIcon()}
+            </Button>
+        );
+    }
 
-		if (!this.hasChildren()) {
-			return <i className="rct-icon rct-icon-leaf" />;
-		}
+    renderCollapseIcon() {
+        const { expanded, icons: { expandClose, expandOpen } } = this.props;
 
-		if (!this.props.expanded) {
-			return <i className="rct-icon rct-icon-parent-close" />;
-		}
+        if (!expanded) {
+            return expandClose;
+        }
 
-		return <i className="rct-icon rct-icon-parent-open" />;
-	}
+        return expandOpen;
+    }
 
-	renderChildren() {
-		if (!this.props.expanded) {
-			return null;
-		}
+    renderCheckboxIcon() {
+        const { checked, icons: { uncheck, check, halfCheck } } = this.props;
 
-		return this.props.children;
-	}
+        if (checked === 0) {
+            return uncheck;
+        }
 
-	render() {
-		const { checked, treeId, label, value } = this.props;
-		const inputId = `${treeId}-${value}`;
-		const nodeClass = classNames({
-			'rct-node': true,
-			'rct-node-parent': this.hasChildren(),
-			'rct-node-leaf': !this.hasChildren(),
-		});
+        if (checked === 1) {
+            return check;
+        }
 
-		return (
-			<li className={nodeClass}>
-				<span className="rct-text">
-					{this.renderCollapseButton()}
-					<label htmlFor={inputId}>
-						<input checked={checked === 1} id={inputId} type="checkbox" onChange={this.onCheck} />
-						<span className="rct-checkbox">
-							{this.renderCheckboxIcon()}
-						</span>
-						<span className="rct-node-icon">
-							{this.renderNodeIcon()}
-						</span>
-						<span className="rct-title">
-							{label}
-						</span>
-					</label>
-				</span>
-				{this.renderChildren()}
-			</li>
-		);
-	}
+        return halfCheck;
+    }
+
+    renderNodeIcon() {
+        const {
+            expanded,
+            icon,
+            icons: { leaf, parentClose, parentOpen },
+            isLeaf,
+        } = this.props;
+
+        if (icon !== null) {
+            return icon;
+        }
+
+        if (isLeaf) {
+            return leaf;
+        }
+
+        if (!expanded) {
+            return parentClose;
+        }
+
+        return parentOpen;
+    }
+
+    renderBareLabel(children) {
+        const { onClick, title } = this.props;
+        const clickable = onClick.toString() !== TreeNode.defaultProps.onClick.toString();
+
+        return (
+            <span className="rct-bare-label" title={title}>
+                {clickable ? (
+                    <span
+                        className="rct-node-clickable"
+                        onClick={this.onClick}
+                        onKeyPress={this.onClick}
+                        role="button"
+                        tabIndex={0}
+                    >
+                        {children}
+                    </span>
+                ) : children}
+            </span>
+        );
+    }
+
+    renderCheckboxLabel(children) {
+        const {
+            checked,
+            disabled,
+            label,
+            title,
+            treeId,
+            value,
+            onClick,
+        } = this.props;
+        const clickable = onClick.toString() !== TreeNode.defaultProps.onClick.toString();
+        const inputId = `${treeId}-${String(value).split(' ').join('_')}`;
+
+        const render = [(
+            <label key={0} htmlFor={inputId} title={title}>
+                <NativeCheckbox
+                    checked={checked === 1}
+                    disabled={disabled}
+                    id={inputId}
+                    indeterminate={checked === 2}
+                    onChange={this.onCheck}
+                />
+                <span className="rct-checkbox">
+                    {this.renderCheckboxIcon()}
+                </span>
+                {!clickable ? children : null}
+            </label>
+        )];
+
+        if (clickable) {
+            render.push((
+                <span
+                    key={1}
+                    className="rct-node-clickable"
+                    onClick={this.onClick}
+                    onKeyPress={this.onClick}
+                    role="link"
+                    tabIndex={0}
+                >
+                    {children}
+                </span>
+            ));
+        }
+
+        return render;
+    }
+
+    renderLabel() {
+        const { label, showCheckbox, showNodeIcon } = this.props;
+        const labelChildren = [
+            showNodeIcon ? (
+                <span key={0} className="rct-node-icon">
+                    {this.renderNodeIcon()}
+                </span>
+            ) : null,
+            <span key={1} className="rct-title">
+                {label}
+            </span>,
+        ];
+
+        if (!showCheckbox) {
+            return this.renderBareLabel(labelChildren);
+        }
+
+        return this.renderCheckboxLabel(labelChildren);
+    }
+
+    renderChildren() {
+        if (!this.props.expanded) {
+            return null;
+        }
+
+        return this.props.children;
+    }
+
+    render() {
+        const {
+            className,
+            disabled,
+            expanded,
+            isLeaf,
+        } = this.props;
+        const nodeClass = classNames({
+            'rct-node': true,
+            'rct-node-leaf': isLeaf,
+            'rct-node-parent': !isLeaf,
+            'rct-node-expanded': !isLeaf && expanded,
+            'rct-node-collapsed': !isLeaf && !expanded,
+            'rct-disabled': disabled,
+        }, className);
+
+        return (
+            <li className={nodeClass}>
+                <span className="rct-text">
+                    {this.renderCollapseButton()}
+                    {this.renderLabel()}
+                </span>
+                {this.renderChildren()}
+            </li>
+        );
+    }
 }
 
 export default TreeNode;

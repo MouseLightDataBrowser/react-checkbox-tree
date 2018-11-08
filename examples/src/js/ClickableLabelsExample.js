@@ -80,7 +80,8 @@ const nodes = [
     },
 ];
 
-class BasicExample extends React.Component {
+/* eslint-disable react/jsx-one-expression-per-line */
+class ClickExample extends React.Component {
     constructor() {
         super();
 
@@ -95,9 +96,11 @@ class BasicExample extends React.Component {
             expanded: [
                 '/app',
             ],
+            clicked: {},
         };
 
         this.onCheck = this.onCheck.bind(this);
+        this.onClick = this.onClick.bind(this);
         this.onExpand = this.onExpand.bind(this);
     }
 
@@ -105,23 +108,35 @@ class BasicExample extends React.Component {
         this.setState({ checked });
     }
 
+    onClick(clicked) {
+        this.setState({ clicked });
+    }
+
     onExpand(expanded) {
         this.setState({ expanded });
     }
 
     render() {
-        const { checked, expanded } = this.state;
+        const { checked, expanded, clicked } = this.state;
+        const notClickedText = '(none)';
 
         return (
-            <CheckboxTree
-                checked={checked}
-                expanded={expanded}
-                nodes={nodes}
-                onCheck={this.onCheck}
-                onExpand={this.onExpand}
-            />
+            <div className="clickable-labels">
+                <CheckboxTree
+                    checked={checked}
+                    expanded={expanded}
+                    nodes={nodes}
+                    expandOnClick
+                    onCheck={this.onCheck}
+                    onClick={this.onClick}
+                    onExpand={this.onExpand}
+                />
+                <div className="clickable-labels-info">
+                    <strong>Clicked Node</strong>: {clicked.value || notClickedText}
+                </div>
+            </div>
         );
     }
 }
 
-export default BasicExample;
+export default ClickExample;

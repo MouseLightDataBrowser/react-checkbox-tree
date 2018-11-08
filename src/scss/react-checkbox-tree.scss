@@ -1,8 +1,17 @@
 $rct-icon-color: #33c !default;
 $rct-label-hover: rgba($rct-icon-color, .1) !default;
+$rct-label-active: rgba($rct-icon-color, .15) !default;
+$rct-clickable-hover: rgba($rct-icon-color, .1) !default;
+$rct-clickable-focus: rgba($rct-icon-color, .2) !default;
 
 .react-checkbox-tree {
+  display: flex;
   font-size: 16px;
+  flex-direction: row-reverse;
+
+  > ol {
+    flex: 1 1 auto;
+  }
 
   ol {
     margin: 0;
@@ -21,6 +30,14 @@ $rct-label-hover: rgba($rct-icon-color, .1) !default;
     &:focus {
       outline: none;
     }
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  .rct-bare-label {
+    cursor: default;
   }
 
   label {
@@ -30,10 +47,18 @@ $rct-label-hover: rgba($rct-icon-color, .1) !default;
     &:hover {
       background: $rct-label-hover;
     }
+
+    &:active {
+      background: $rct-label-active;
+    }
   }
 
-  input {
+  &:not(.rct-native-display) input {
     display: none;
+  }
+
+  &.rct-native-display input {
+    margin: 0 5px;
   }
 
   .rct-icon {
@@ -42,9 +67,52 @@ $rct-label-hover: rgba($rct-icon-color, .1) !default;
   }
 }
 
+.rct-disabled {
+  > .rct-text > label {
+    opacity: .75;
+    cursor: not-allowed;
+
+    &:hover {
+      background: transparent;
+    }
+
+    &:active {
+      background: transparent;
+    }
+  }
+}
+
+.rct-text {
+  display: flex;
+  align-items: center;
+}
+
+.rct-options {
+  margin-left: .5rem;
+  text-align: right;
+  flex: 0 0 auto;
+}
+
+.rct-option {
+  opacity: .75;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 18px;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  + .rct-option {
+    margin-left: 2px;
+  }
+}
+
 .rct-collapse,
-.rct-node-icon,
-.rct-checkbox {
+.rct-checkbox,
+.rct-node-icon {
   padding: 0 5px;
 
   * {
@@ -52,11 +120,6 @@ $rct-label-hover: rgba($rct-icon-color, .1) !default;
     margin: 0;
     width: 14px;
   }
-}
-
-.rct-text {
-  display: flex;
-  align-items: center;
 }
 
 .rct-collapse {
@@ -76,6 +139,25 @@ $rct-label-hover: rgba($rct-icon-color, .1) !default;
     &:hover {
       opacity: 1;
     }
+  }
+}
+
+.rct-checkbox {
+  .rct-native-display & {
+    display: none;
+  }
+}
+
+.rct-node-clickable {
+  cursor: pointer;
+
+  &:hover {
+    background: $rct-clickable-hover;
+  }
+
+  &:focus {
+    outline: 0;
+    background: $rct-clickable-focus;
   }
 }
 
@@ -118,4 +200,12 @@ $rct-label-hover: rgba($rct-icon-color, .1) !default;
 
 .rct-icon-parent-close::before {
   content: "\f114";
+}
+
+.rct-icon-expand-all::before {
+  content: "\f0fe";
+}
+
+.rct-icon-collapse-all::before {
+  content: "\f146";
 }

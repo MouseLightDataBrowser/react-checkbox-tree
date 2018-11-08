@@ -6,90 +6,119 @@ const webpack = require('webpack');
 const webpackStream = require('webpack-stream');
 const scsslint = require('gulp-scss-lint');
 const sass = require('gulp-sass');
+const less = require('gulp-less');
+const minify = require('gulp-clean-css');
+const run = require('gulp-run');
 const autoprefixer = require('gulp-autoprefixer');
-const pkg = require('./package.json');
 const browserSync = require('browser-sync').create();
+const pkg = require('./package.json');
 const webpackConfig = require('./webpack.config');
 const testWebpackConfig = require('./webpack.test.config');
 
 const banner = '/*! <%= pkg.name %> - v<%= pkg.version %> | <%= new Date().getFullYear() %> */\n';
 
 gulp.task('test-script-format', () => (
-	gulp.src(['./src/js/**/*.js'])
-		.pipe(eslint())
-		.pipe(eslint.format())
-		.pipe(eslint.failOnError())
+    gulp.src([
+        './examples/src/**/*.js',
+        './src/**/*.js',
+        './test/**/*.js',
+        './*.js',
+    ])
+        .pipe(eslint())
+        .pipe(eslint.format())
+        .pipe(eslint.failOnError())
 ));
 
 gulp.task('test-mocha', ['test-script-format'], () => (
-	gulp.src(['./test/**/*.js'])
-		.pipe(mocha({
-			compilers: [
-				'js:babel-core/register',
-			],
-			require: [
-				'./test/setup.js',
-			],
-		}))
+    gulp.src(['./test/**/*.js'])
+        .pipe(mocha({
+            require: [
+                '@babel/register',
+                './test/setup.js',
+            ],
+        }))
 ));
 
 gulp.task('test', ['test-script-format', 'test-mocha']);
 
 gulp.task('build-script', ['test'], () => (
-	gulp.src(['./src/index.js'])
-		.pipe(webpackStream(webpackConfig, webpack))
-		.pipe(header(banner, { pkg }))
-		.pipe(gulp.dest('./lib/'))
+    gulp.src(['./src/index.js'])
+        .pipe(webpackStream(webpackConfig('node'), webpack))
+        .pipe(header(banner, { pkg }))
+        .pipe(gulp.dest('./lib/'))
+));
+
+gulp.task('build-script-web', ['build-script'], () => (
+    gulp.src(['./src/index.js'])
+        .pipe(webpackStream(webpackConfig('web'), webpack))
+        .pipe(header(banner, { pkg }))
+        .pipe(gulp.dest('./lib/'))
 ));
 
 gulp.task('build-style', () => (
-	gulp.src('./src/scss/**/*.scss')
-		.pipe(scsslint())
-		.pipe(scsslint.failReporter())
-		.pipe(sass({
-			outputStyle: 'expanded',
-		}).on('error', sass.logError))
-		.pipe(autoprefixer({
-			browsers: ['last 2 versions'],
-		}))
-		.pipe(gulp.dest('./lib'))
+    gulp.src('./src/scss/**/*.scss')
+        .pipe(scsslint())
+        .pipe(scsslint.failReporter())
+        .pipe(sass({
+            outputStyle: 'expanded',
+        }).on('error', sass.logError))
+        .pipe(autoprefixer({
+            browsers: ['last 2 versions'],
+        }))
+        .pipe(gulp.dest('./lib'))
+        .pipe(minify())
+        .pipe(gulp.dest('./.css-compare/scss'))
 ));
 
-gulp.task('build', ['build-script', 'build-style']);
+gulp.task('build-style-less', () => (
+    gulp.src('./src/less/**/*.less')
+        .pipe(less())
+        .pipe(autoprefixer({
+            browsers: ['last 2 versions'],
+        }))
+        .pipe(minify())
+        .pipe(gulp.dest('./.css-compare/less'))
+));
+
+gulp.task('compare-css-output', ['build-style', 'build-style-less'], () => (
+    run('cmp .css-compare/less/react-checkbox-tree.css .css-compare/scss/react-checkbox-tree.css').exec()
+));
+
+gulp.task('build', ['build-script-web', 'compare-css-output']);
 
 gulp.task('build-examples-style', () => (
-	gulp.src('./examples/src/scss/**/*.scss')
-		.pipe(scsslint())
-		.pipe(scsslint.failReporter())
-		.pipe(sass({
-			outputStyle: 'expanded',
-		}).on('error', sass.logError))
-		.pipe(autoprefixer({
-			browsers: ['last 2 versions'],
-		}))
-		.pipe(gulp.dest('./examples/dist'))
-		.pipe(browserSync.stream())
+    gulp.src('./examples/src/scss/**/*.scss')
+        .pipe(scsslint())
+        .pipe(scsslint.failReporter())
+        .pipe(sass({
+            outputStyle: 'expanded',
+        }).on('error', sass.logError))
+        .pipe(autoprefixer({
+            browsers: ['last 2 versions'],
+        }))
+        .pipe(gulp.dest('./examples/dist'))
+        .pipe(browserSync.stream())
 ));
 
 gulp.task('build-examples-script', () => (
-	gulp.src(['./examples/src/index.js'])
-		.pipe(webpackStream(testWebpackConfig, webpack))
-		.pipe(gulp.dest('./examples/dist/'))
-		.pipe(browserSync.stream())
+    gulp.src(['./examples/src/index.js'])
+        .pipe(webpackStream(testWebpackConfig, webpack))
+        .pipe(gulp.dest('./examples/dist/'))
+        .pipe(browserSync.stream())
 ));
 
 gulp.task('build-examples-html', () => (
-	gulp.src('./examples/src/index.html')
-		.pipe(gulp.dest('./examples/dist/'))
-		.pipe(browserSync.stream())
+    gulp.src('./examples/src/index.html')
+        .pipe(gulp.dest('./examples/dist/'))
+        .pipe(browserSync.stream())
 ));
 
 gulp.task('examples', ['build-examples-style', 'build-examples-script', 'build-examples-html'], () => {
-	browserSync.init({ server: './examples/dist' });
+    browserSync.init({ server: './examples/dist' });
 
-	gulp.watch(['./src/js/**/*.js', './examples/src/**/*.js'], ['build-examples-script']);
-	gulp.watch(['./src/scss/**/*.scss', './examples/src/**/*.scss'], ['build-examples-style']);
-	gulp.watch(['./examples/src/**/*.html'], ['build-examples-html']).on('change', browserSync.reload);
+    gulp.watch(['./src/js/**/*.js', './examples/src/**/*.js'], ['build-examples-script']);
+    gulp.watch(['./src/scss/**/*.scss', './examples/src/**/*.scss'], ['build-examples-style']);
+    gulp.watch(['./examples/src/**/*.html'], ['build-examples-html']).on('change', browserSync.reload);
 });
 
 gulp.task('default', ['build']);

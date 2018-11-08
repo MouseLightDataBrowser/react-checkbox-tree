@@ -80,7 +80,7 @@ const nodes = [
     },
 ];
 
-class BasicExample extends React.Component {
+class NoCascadeExample extends React.Component {
     constructor() {
         super();
 
@@ -94,6 +94,7 @@ class BasicExample extends React.Component {
             ],
             expanded: [
                 '/app',
+                '/app/Http',
             ],
         };
 
@@ -116,6 +117,7 @@ class BasicExample extends React.Component {
             <CheckboxTree
                 checked={checked}
                 expanded={expanded}
+                noCascade
                 nodes={nodes}
                 onCheck={this.onCheck}
                 onExpand={this.onExpand}
@@ -124,4 +126,4 @@ class BasicExample extends React.Component {
     }
 }
 
-export default BasicExample;
+export default NoCascadeExample;

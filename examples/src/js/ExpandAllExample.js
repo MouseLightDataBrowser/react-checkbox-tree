@@ -80,7 +80,7 @@ const nodes = [
     },
 ];
 
-class BasicExample extends React.Component {
+class ExpandAllExample extends React.Component {
     constructor() {
         super();
 
@@ -113,15 +113,18 @@ class BasicExample extends React.Component {
         const { checked, expanded } = this.state;
 
         return (
-            <CheckboxTree
-                checked={checked}
-                expanded={expanded}
-                nodes={nodes}
-                onCheck={this.onCheck}
-                onExpand={this.onExpand}
-            />
+            <div className="expand-all-container">
+                <CheckboxTree
+                    checked={checked}
+                    expanded={expanded}
+                    nodes={nodes}
+                    showExpandAll
+                    onCheck={this.onCheck}
+                    onExpand={this.onExpand}
+                />
+            </div>
         );
     }
 }
 
-export default BasicExample;
+export default ExpandAllExample;
